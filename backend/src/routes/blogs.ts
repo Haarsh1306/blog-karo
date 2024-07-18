@@ -77,13 +77,32 @@ blogRouter.get('/get/:id', async (c) => {
 		datasourceUrl: c.env?.DATABASE_URL	,
 	}).$extends(withAccelerate());
 	
-	const post = await prisma.post.findUnique({
-		where: {
-			id
-		}
-	});
-
-	return c.json(post);
+	try {
+        const blog = await prisma.post.findFirst({
+            where: {
+                id
+            },
+            select: {
+                id: true,
+                title: true,
+                content: true,
+                author: {
+                    select: {
+                        name: true
+                    }
+                }
+            }
+        })
+    
+        return c.json({
+            blog
+        });
+    } catch(e) {
+        c.status(411); // 4
+        return c.json({
+            message: "Error while fetching blog post"
+        });
+    }
 })
 
 blogRouter.get('/bulk', async (c) => {
